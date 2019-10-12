@@ -41,7 +41,7 @@ class Number:
 
 	def showImage(self):
 		df = self.getAsDataFrame()
-
+		plt.imshow(df)
 
 
 # read the next number in from the label file and the image file
