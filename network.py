@@ -1,10 +1,11 @@
-import os, pdb, struct, random
+import os, pdb, struct, random, sys
 import numpy as np
 import matplotlib
-# why is this brokennnn
-matplotlib.use('PS')
-import matplotlib.pyplot as plt
 
+# why is matplotlib brokennnn on python3
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
 from pandas import DataFrame
 
 # documentation on the data files can be found at http://yann.lecun.com/exdb/mnist/index.html
@@ -17,7 +18,8 @@ test_label_file = os.path.join(data_path, 't10k-labels-idx1-ubyte')
 test_image_file = os.path.join(data_path, 't10k-images-idx3-ubyte')
 
 # set the number of examples in the files
-n_examples = 1
+n_training = 1
+n_testing = 10000
 # images are 28x28 pixels
 IM_RES = 28
 # images are scaled from 0 to 255 for each pixel value
@@ -42,6 +44,8 @@ class Number:
 	def showImage(self):
 		df = self.getAsDataFrame()
 		plt.imshow(df)
+		plt.title('this is a {}'.format(self.label))
+		plt.show()
 
 
 # read the next number in from the label file and the image file
@@ -53,19 +57,20 @@ def readNumber(label_file, image_file):
 	# flat (unpacked) array, reading from top to bottom, left to right, like words on a page
 	im_array = []
 	for s in range(IM_RES*IM_RES):
-		im_array.append(struct.unpack('B', label_file.read(1))[0]/IM_SCALE)
+		im_array.append(struct.unpack('B', image_file.read(1))[0]/IM_SCALE)
 	return Number(label, im_array)
 
-print('reading in data')
 numbers = []
+
 with open(train_label_file, 'rb') as lab_file:
 	with open(train_image_file, 'rb') as im_file:
 		# read through the beginning of the label file
 		lab_file.read(8)
 		# read through the beginning of the image file
-		im_file.read(16)
-		# read in the next label and the next 
-		for i in range(n_examples):
+		im_file.read(4)
+		# read in the next label and the next image
+		for i in range(n_training):
+			n_testing = 10000
 			numbers.append(readNumber(lab_file, im_file))
 
-numbers[0].getAsDataFrame()
+numbers[0].showImage()
