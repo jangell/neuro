@@ -18,7 +18,7 @@ test_label_file = os.path.join(data_path, 't10k-labels-idx1-ubyte')
 test_image_file = os.path.join(data_path, 't10k-images-idx3-ubyte')
 
 # set the number of examples in the files
-n_training = 1
+n_training = 100
 n_testing = 10000
 # images are 28x28 pixels
 IM_RES = 28
@@ -47,30 +47,52 @@ class Number:
 		plt.title('this is a {}'.format(self.label))
 		plt.show()
 
+# numbers <Number []> : list of number objects
+# size <int> : length of {self.numbers}
+class NumberList:
 
-# read the next number in from the label file and the image file
-# inputs: label file, image file
-#   NOTE that both files must already be read up to the next number
-# output: Number class object
-def readNumber(label_file, image_file):
-	label = struct.unpack('B', label_file.read(1))[0]
-	# flat (unpacked) array, reading from top to bottom, left to right, like words on a page
-	im_array = []
-	for s in range(IM_RES*IM_RES):
-		im_array.append(struct.unpack('B', image_file.read(1))[0]/IM_SCALE)
-	return Number(label, im_array)
+	# label_file: path to the file containing the number labels
+	# image_file: path to the file containing the handwritten number images
+	# n_numbers: the number of numbers to read in.
+	#   defaults to the number of numbers in label_file and image_file; throws exception if they disagree
+	def __init__(self, label_file, image_file, n_numbers=None):
+		self.numbers = []
+		self.label_file = label_file
+		self.image_file = image_file
+		with open(train_label_file, 'rb') as lab_file:
+			with open(train_image_file, 'rb') as im_file:
+				# pass by the magic numbers
+				lab_file.read(4)
+				im_file.read(4)
+				# get the number of numbers 
+				n_labs = struct.unpack('i', lab_file.read(4))[0]
+				n_ims = struct.unpack('i', im_file.read(4))[0]
+				# make sure they agree
+				if n_ims != n_labs:
+					raise Exception('Number of images and labels should agree')
+				# use this number as n_numbers, unless one was provided
+				if not n_numbers:
+					n_numbers = n_ims
+				self.size = n_numbers
 
-numbers = []
+				# read in the actual data
+				for i in range(n_numbers):
+					cur_label = struct.unpack('B', label_file.read(1))[0]
+					cur_im_array = []
+					for s in range(IM_RES*IM_RES):
+						cur_im_array.append(struct.unpack('B', im_file.read(1))[0]/IM_SCALE)
+					self.numbers.append(Number(cur_label, cur_im_array))
+
 
 with open(train_label_file, 'rb') as lab_file:
 	with open(train_image_file, 'rb') as im_file:
 		# read through the beginning of the label file
 		lab_file.read(8)
 		# read through the beginning of the image file
-		im_file.read(4)
+		im_file.read(16)
 		# read in the next label and the next image
 		for i in range(n_training):
 			n_testing = 10000
 			numbers.append(readNumber(lab_file, im_file))
 
-numbers[0].showImage()
+for i in range
